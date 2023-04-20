@@ -9,8 +9,8 @@ import random
 screen_width = 1000
 screen_height = 600
 projectiles = []
-bounce_damping = 1
-constant = 0.1
+bounce_damping = 0.9
+constant = 0.2
 border = 300
 
 #initializing pygame with innit function
@@ -105,10 +105,10 @@ class Object:
                                                               other.radius)
 
             # Update velocities of colliding objects
-            self.velocity[0] = v1f_x
-            self.velocity[1] = v1f_y
-            other.velocity[0] = v2f_x
-            other.velocity[1] = v2f_y
+            self.velocity[0] = v1f_x * bounce_damping
+            self.velocity[1] = v1f_y* bounce_damping
+            other.velocity[0] = v2f_x* bounce_damping
+            other.velocity[1] = v2f_y* bounce_damping
 
 
 ##creates an instance of an object from objet class
@@ -157,8 +157,8 @@ while True:
                 Object(
                     [0, screen_height],
                     [velocity * math.cos(angle), -velocity * math.sin(angle)],
-                    0.2,
-                    12,
+                    1,
+                    25,
                     color
             ))
 
@@ -182,7 +182,7 @@ while True:
     #loops over all balls
     for particle in projectiles:
         #drawing particle
-        pygame.draw.circle(screen, (particle.color), (particle.position[0], particle.position[1]), 12)
+        pygame.draw.circle(screen, (particle.color), (particle.position[0], particle.position[1]), particle.radius)
 
     #labels white line
     text_surface = font.render(str(int(velocity)), True, (255, 255, 255))
