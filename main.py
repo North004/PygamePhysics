@@ -35,7 +35,7 @@ class Object:
         #checks if the sphere is overlapping with border
         if self.position[0] - self.radius < 0:
             # sets the velocity in the other direction and  multiplys by bounce damping
-            self.velocity[0] = abs(self.velocity[0]) * Simulator.bounce_damping
+            self.velocity[0] = abs(self.velocity[0]) * self.simulator.bounce_damping
             #sets position so it is just on the edge and not over the edge
             self.position[0] = self.radius
 
@@ -168,8 +168,7 @@ class Simulator:
             ## returns a array with mouse x and y position
             mouse = list(pygame.mouse.get_pos())
 
-            if math.sqrt(mouse[0]**2 +
-                         (self.screen_height - mouse[1])**2) < self.border:
+            if math.sqrt(mouse[0]**2 + (self.screen_height - mouse[1])**2) < self.border and mouse[0] > 0:
                 self.mouse_pos = mouse
                 self.angle = math.atan(
                     (self.screen_height - self.mouse_pos[1]) /
@@ -207,7 +206,7 @@ class Simulator:
                         Object([0, self.screen_height // 2], [
                             velocity * math.cos(angle),
                             -velocity * math.sin(angle)
-                        ], 1, 9, color,self))
+                        ], self.acceleration, 16, color,self))
 
             #updating display every time the loop repeats
 
@@ -241,8 +240,5 @@ class Simulator:
             #passed updates to screen
             pygame.display.update()
 
-
 Sim1 = Simulator(0)
-Sim2 = Simulator(1)
 Sim1.run()
-Sim2.run()
