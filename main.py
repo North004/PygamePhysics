@@ -7,12 +7,13 @@ import random
 
 class Object:
     #constructor class
-    def __init__(self, position, velocity, acceleration, radius, color):
+    def __init__(self, position, velocity, acceleration, radius, color,simulator):
         self.position = position
         self.velocity = velocity
         self.acceleration = acceleration
         self.radius = radius
         self.color = color
+        self.simulator = simulator
 
     def gravity(self):
         #adds acceleration to y component of velocity
@@ -27,7 +28,7 @@ class Object:
     #bounce method accepts two parametrs screen width and height
     def bounce(self, screen_width, screen_height):
         #checks over all instances apart from the object which this method belongs to
-        for other in Simulator.particles:
+        for other in self.simulator.particles:
             if other != self:
                 #it then calls the collide function with the other object
                 self.collide(other)
@@ -40,15 +41,17 @@ class Object:
 
         #repeats 4 times for 4 differant walls varying slightly
         elif self.position[0] + self.radius > screen_width:
-            self.velocity[0] = -abs(self.velocity[0]) * Simulator.bounce_damping
+            self.velocity[0] = -abs(
+                self.velocity[0]) * self.simulator.bounce_damping
             self.position[0] = screen_width - self.radius
 
         if self.position[1] - self.radius < 0:
-            self.velocity[1] = abs(self.velocity[1]) * Simulator.bounce_damping
+            self.velocity[1] = abs(self.velocity[1]) * self.simulator.bounce_damping
             self.position[1] = self.radius
 
         elif self.position[1] + self.radius > screen_height:
-            self.velocity[1] = -abs(self.velocity[1]) * Simulator.bounce_damping
+            self.velocity[1] = -abs(
+                self.velocity[1]) * self.simulator.bounce_damping
             self.position[1] = screen_height - self.radius
 
     def collide(self, other):
@@ -82,10 +85,10 @@ class Object:
                                                               other.radius)
 
             # Update velocities of colliding objects
-            self.velocity[0] = v1f_x 
-            self.velocity[1] = v1f_y 
+            self.velocity[0] = v1f_x
+            self.velocity[1] = v1f_y
             other.velocity[0] = v2f_x
-            other.velocity[1] = v2f_y 
+            other.velocity[1] = v2f_y
 
 
 class Simulator:
@@ -113,51 +116,50 @@ class Simulator:
         #setting a caption for the window
         pygame.display.set_caption('Simulator')
 
-
     def drawGui(self):
-               #labels white line
-            text_surface = self.font.render(str(int(self.velocity)), True,
-                                            (255, 255, 255))
-            #displaying text surface to screen
-            self.screen.blit(text_surface,
-                             (self.mouse_pos[0] + 20, self.mouse_pos[1] + 20))
+        #labels white line
+        text_surface = self.font.render(str(int(self.velocity)), True,
+                                        (255, 255, 255))
+        #displaying text surface to screen
+        self.screen.blit(text_surface,
+                         (self.mouse_pos[0] + 20, self.mouse_pos[1] + 20))
 
-            #labels angle
-            text_surface = self.font.render(str(int(self.angle * (180 / 3.14159))),
-                                            True, (255, 255, 255))
-            self.screen.blit(text_surface, (20, self.screen_height - 20))
+        #labels angle
+        text_surface = self.font.render(str(int(self.angle * (180 / 3.14159))),
+                                        True, (255, 255, 255))
+        self.screen.blit(text_surface, (20, self.screen_height - 20))
 
-            #draws a white line resultant component of velocity
-            pygame.draw.line(self.screen, (255, 255, 255),
-                             (0, self.screen_height),
-                             (self.mouse_pos[0], self.mouse_pos[1]), 3)
+        #draws a white line resultant component of velocity
+        pygame.draw.line(self.screen, (255, 255, 255), (0, self.screen_height),
+                         (self.mouse_pos[0], self.mouse_pos[1]), 3)
 
-            #draws a red line x component of velocity
-            pygame.draw.line(self.screen, (255, 0, 0), (0, self.screen_height),
-                             (self.mouse_pos[0], self.screen_height), 3)
+        #draws a red line x component of velocity
+        pygame.draw.line(self.screen, (255, 0, 0), (0, self.screen_height),
+                         (self.mouse_pos[0], self.screen_height), 3)
 
-            #labels red line with x component of velocity
-            text_surface = self.font.render(
-                str(int(self.velocity * math.cos(self.angle))), True, (255, 0, 0))
-            self.screen.blit(text_surface,
-                             (self.mouse_pos[0] // 2, self.screen_height - 24))
+        #labels red line with x component of velocity
+        text_surface = self.font.render(
+            str(int(self.velocity * math.cos(self.angle))), True, (255, 0, 0))
+        self.screen.blit(text_surface,
+                         (self.mouse_pos[0] // 2, self.screen_height - 24))
 
-            #draws a blue line y component of velocity
-            pygame.draw.line(self.screen, (0, 0, 255),
-                             (self.mouse_pos[0], self.screen_height),
-                             (self.mouse_pos[0], self.mouse_pos[1]), 3)
+        #draws a blue line y component of velocity
+        pygame.draw.line(self.screen, (0, 0, 255),
+                         (self.mouse_pos[0], self.screen_height),
+                         (self.mouse_pos[0], self.mouse_pos[1]), 3)
 
-            #labels a blue line with y component of velocit
-            text_surface = self.font.render(
-                str(int(self.velocity * math.sin(self.angle))), True, (0, 0, 255))
-            self.screen.blit(text_surface,
-                             (self.mouse_pos[0] + 12, self.screen_height -
-                              (self.screen_height - self.mouse_pos[1]) // 2))
+        #labels a blue line with y component of velocit
+        text_surface = self.font.render(
+            str(int(self.velocity * math.sin(self.angle))), True, (0, 0, 255))
+        self.screen.blit(text_surface,
+                         (self.mouse_pos[0] + 12, self.screen_height -
+                          (self.screen_height - self.mouse_pos[1]) // 2))
 
-            #draws an arc between circle and projection line
-            pygame.draw.arc(self.screen, (255, 255, 255),
-                            [-50, self.screen_height - 50, 100, 100], 0, self.angle,
-                            3)
+        #draws an arc between circle and projection line
+        pygame.draw.arc(self.screen, (255, 255, 255),
+                        [-50, self.screen_height - 50, 100, 100], 0,
+                        self.angle, 3)
+
     def run(self):
         while True:
 
@@ -165,13 +167,14 @@ class Simulator:
 
             ## returns a array with mouse x and y position
             mouse = list(pygame.mouse.get_pos())
-                
-            if math.sqrt(mouse[0]**2 + (self.screen_height - mouse[1])**2) < self.border:
+
+            if math.sqrt(mouse[0]**2 +
+                         (self.screen_height - mouse[1])**2) < self.border:
                 self.mouse_pos = mouse
-                self.angle = math.atan((self.screen_height-self.mouse_pos[1])/self.mouse_pos[0])
-                    
-                
-                                 
+                self.angle = math.atan(
+                    (self.screen_height - self.mouse_pos[1]) /
+                    self.mouse_pos[0])
+
             # validity
             if self.mouse_pos[0] != None:
                 #calculating angle
@@ -179,6 +182,7 @@ class Simulator:
                     angle = math.atan(
                         (self.screen_height - self.mouse_pos[1]) /
                         self.mouse_pos[0])
+
                     #calculating velocity
                     velocity = self.constant * math.sqrt(
                         ((self.mouse_pos[0])**2 +
@@ -200,10 +204,10 @@ class Simulator:
                     color = (random.randint(50, 200), random.randint(50, 200),
                              random.randint(50, 200))
                     self.particles.append(
-                        Object([0, self.screen_height//2], [
+                        Object([0, self.screen_height // 2], [
                             velocity * math.cos(angle),
                             -velocity * math.sin(angle)
-                        ], 1, 9, color))
+                        ], 1, 9, color,self))
 
             #updating display every time the loop repeats
 
@@ -238,5 +242,7 @@ class Simulator:
             pygame.display.update()
 
 
-Simulator = Simulator(1)
-Simulator.run()
+Sim1 = Simulator(0)
+Sim2 = Simulator(1)
+Sim1.run()
+Sim2.run()
