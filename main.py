@@ -7,11 +7,12 @@ import random
 
 class Object:
     #constructor class
-    def __init__(self, position, velocity, acceleration, radius, color,simulator):
+    def __init__(self, position, velocity, acceleration, radius,mass, color,simulator):
         self.position = position
         self.velocity = velocity
         self.acceleration = acceleration
         self.radius = radius
+        self.mass = mass
         self.color = color
         self.simulator = simulator
 
@@ -84,6 +85,27 @@ class Object:
                      (2 * self.radius * self.velocity[1])) / (self.radius +
                                                               other.radius)
 
+            #new code
+                
+            v1f_x = ((self.mass - other.mass) * self.velocity[0] +
+         2 * other.mass * other.velocity[0] +
+         self.mass * self.velocity[0]) / (self.mass + other.mass)
+         
+            v1f_y = ((self.mass - other.mass) * self.velocity[1] +
+         2 * other.mass * other.velocity[1] +
+         self.mass * self.velocity[1]) / (self.mass + other.mass)
+
+            v2f_x = ((other.mass - self.mass) * other.velocity[0] +
+         2 * self.mass * self.velocity[0] +
+         other.mass * other.velocity[0]) / (self.mass + other.mass)
+
+            v2f_y = ((other.mass - self.mass) * other.velocity[1] +
+         2 * self.mass * self.velocity[1] +
+         other.mass * other.velocity[1]) / (self.mass + other.mass)
+
+
+
+
             # Update velocities of colliding objects
             self.velocity[0] = v1f_x
             self.velocity[1] = v1f_y
@@ -110,7 +132,7 @@ class Simulator:
         self.angle = 45
         self.mouse_pos = [200, self.screen_height - 200]
         self.border = 300
-        self.bounce_damping = 0.8
+        self.bounce_damping = 1
         self.constant = 0.1
 
         #setting a caption for the window
@@ -161,6 +183,8 @@ class Simulator:
                         self.angle, 3)
 
     def run(self):
+        data = [(20,20),(5,5),(30,30),(5,5),(100,100)]
+        x=0
         while True:
 
             self.clock.tick(30)
@@ -203,10 +227,11 @@ class Simulator:
                     color = (random.randint(50, 200), random.randint(50, 200),
                              random.randint(50, 200))
                     self.particles.append(
-                        Object([0, self.screen_height // 2], [
+                        Object([0, self.screen_height], [
                             velocity * math.cos(angle),
                             -velocity * math.sin(angle)
-                        ], self.acceleration, 16, color,self))
+                        ], self.acceleration, data[x][0],data[x][1], color,self))
+                    x += 1
 
             #updating display every time the loop repeats
 
@@ -219,6 +244,8 @@ class Simulator:
                 particle.update()
                 particle.bounce(self.screen_width, self.screen_height)
 
+                
+                    
             #effectively clears the screen
             self.screen.fill((26, 26, 26))
 
@@ -227,12 +254,15 @@ class Simulator:
                                (0, self.screen_height), self.border)
 
             #loops over all balls
+            ek = 0
             for particle in self.particles:
                 #drawing particle
                 pygame.draw.circle(
                     self.screen, (particle.color),
                     (particle.position[0], particle.position[1]),
                     particle.radius)
+                ek += 0.5 * particle.mass * (particle.velocity[0]**2+particle.velocity[1]**2)
+            print(ek)
 
             #draws the gui to the screen
             self.drawGui()
