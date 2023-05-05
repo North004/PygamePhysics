@@ -22,9 +22,9 @@ class Object:
 
     def update(self):
         # update x component of velocity
-        self.position[0] += self.velocity[0]
+        self.position[0] += self.velocity[0] * self.simulator.constant
         #update y component of velocity
-        self.position[1] += self.velocity[1]
+        self.position[1] += self.velocity[1] * self.simulator.constant
 
     #bounce method accepts two parametrs screen width and height
     def bounce(self, screen_width, screen_height):
@@ -56,62 +56,39 @@ class Object:
             self.position[1] = screen_height - self.radius
 
     def collide(self, other):
-        dx = other.position[0] - self.position[0]
-        dy = other.position[1] - self.position[1]
-        distance = math.sqrt(dx**2 + dy**2)
-        if distance < self.radius + other.radius:
+     dx = other.position[0] - self.position[0]
+     dy = other.position[1] - self.position[1]
+     distance = math.sqrt(dx**2 + dy**2)
+     if distance < self.radius + other.radius:
+        # Objects are colliding, adjust position
+        overlap = (self.radius + other.radius - distance) / 2
+        angle = math.atan2(dy, dx)
 
-            # Objects are colliding, adjust position
-            overlap = (self.radius + other.radius - distance) / 2
-            angle = math.atan2(dy, dx)
+        self.position[0] -= overlap * math.cos(angle)
+        self.position[1] -= overlap * math.sin(angle)
+        other.position[0] += overlap * math.cos(angle)
+        other.position[1] += overlap * math.sin(angle)
 
-            self.position[0] -= overlap * math.cos(angle)
-            self.position[1] -= overlap * math.sin(angle)
-            other.position[0] += overlap * math.cos(angle)
-            other.position[1] += overlap * math.sin(angle)
-
-            # Calculate final velocities using elastic collision formula
+           # Calculate final velocities using elastic collision formula
             # note this is the result of solving multiple equations and reducing it to its simplist form
-            v1f_x = ((self.velocity[0] * (self.radius - other.radius)) +
+        v1f_x = ((self.velocity[0] * (self.radius - other.radius)) +
                      (2 * other.radius * other.velocity[0])) / (self.radius +
                                                                 other.radius)
-            v1f_y = ((self.velocity[1] * (self.radius - other.radius)) +
+        v1f_y = ((self.velocity[1] * (self.radius - other.radius)) +
                      (2 * other.radius * other.velocity[1])) / (self.radius +
                                                                 other.radius)
-            v2f_x = ((other.velocity[0] * (other.radius - self.radius)) +
+        v2f_x = ((other.velocity[0] * (other.radius - self.radius)) +
                      (2 * self.radius * self.velocity[0])) / (self.radius +
                                                               other.radius)
-            v2f_y = ((other.velocity[1] * (other.radius - self.radius)) +
+        v2f_y = ((other.velocity[1] * (other.radius - self.radius)) +
                      (2 * self.radius * self.velocity[1])) / (self.radius +
                                                               other.radius)
-
-            #new code
-                
-            v1f_x = ((self.mass - other.mass) * self.velocity[0] +
-         2 * other.mass * other.velocity[0] +
-         self.mass * self.velocity[0]) / (self.mass + other.mass)
-         
-            v1f_y = ((self.mass - other.mass) * self.velocity[1] +
-         2 * other.mass * other.velocity[1] +
-         self.mass * self.velocity[1]) / (self.mass + other.mass)
-
-            v2f_x = ((other.mass - self.mass) * other.velocity[0] +
-         2 * self.mass * self.velocity[0] +
-         other.mass * other.velocity[0]) / (self.mass + other.mass)
-
-            v2f_y = ((other.mass - self.mass) * other.velocity[1] +
-         2 * self.mass * self.velocity[1] +
-         other.mass * other.velocity[1]) / (self.mass + other.mass)
-
-
-
-
-            # Update velocities of colliding objects
-            self.velocity[0] = v1f_x
-            self.velocity[1] = v1f_y
-            other.velocity[0] = v2f_x
-            other.velocity[1] = v2f_y
-
+        # Update velocities of colliding objects
+        self.velocity[0] = v1f_x 
+        self.velocity[1] = v1f_y 
+        other.velocity[0] = v2f_x
+        other.velocity[1] = v2f_y 
+        
 
 class Simulator:
 
@@ -133,7 +110,7 @@ class Simulator:
         self.mouse_pos = [200, self.screen_height - 200]
         self.border = 300
         self.bounce_damping = 1
-        self.constant = 0.1
+        self.constant = 0.09
 
         #setting a caption for the window
         pygame.display.set_caption('Simulator')
@@ -183,8 +160,6 @@ class Simulator:
                         self.angle, 3)
 
     def run(self):
-        data = [(20,20),(5,5),(30,30),(5,5),(100,100)]
-        x=0
         while True:
 
             self.clock.tick(30)
@@ -207,7 +182,7 @@ class Simulator:
                         self.mouse_pos[0])
 
                     #calculating velocity
-                    velocity = self.constant * math.sqrt(
+                    velocity = math.sqrt(
                         ((self.mouse_pos[0])**2 +
                          (self.screen_height - self.mouse_pos[1])**2))
 
@@ -230,8 +205,7 @@ class Simulator:
                         Object([0, self.screen_height], [
                             velocity * math.cos(angle),
                             -velocity * math.sin(angle)
-                        ], self.acceleration, data[x][0],data[x][1], color,self))
-                    x += 1
+                        ], self.acceleration, radius,mass,color,self))
 
             #updating display every time the loop repeats
 
@@ -254,21 +228,59 @@ class Simulator:
                                (0, self.screen_height), self.border)
 
             #loops over all balls
-            ek = 0
+
             for particle in self.particles:
                 #drawing particle
                 pygame.draw.circle(
                     self.screen, (particle.color),
                     (particle.position[0], particle.position[1]),
                     particle.radius)
-                ek += 0.5 * particle.mass * (particle.velocity[0]**2+particle.velocity[1]**2)
-            print(ek)
+                pygame.draw.circle(
+                    self.screen, ((0,0,0)),
+                    (particle.position[0], particle.position[1]),
+                    particle.radius,1)
 
             #draws the gui to the screen
             self.drawGui()
 
             #passed updates to screen
             pygame.display.update()
+            #print("real mouse pos",mouse)
+            #print("validated mouse pos!",self.mouse_pos)
 
-Sim1 = Simulator(0)
+
+while True:
+    try:
+        acceleration = float(input("Enter acceleration: "))
+        if acceleration>= 0:
+            print('Valid')
+            break
+        else:
+            print("Invalid.")
+    except ValueError:
+        print("Invalid")
+
+while True:
+    try:
+        radius= float(input("Enter radius: "))
+        if radius > 0:
+            print('Valid')
+            break
+        else:
+            print("Invalid.")
+    except ValueError:
+        print("Invalid")
+
+while True:
+    try:
+        mass = float(input("Enter mass: "))
+        if mass> 0:
+            print('Valid')
+            break
+        else:
+            print("Invalid.")
+    except ValueError:
+        print("Invalid")
+            
+Sim1 = Simulator(acceleration)
 Sim1.run()
